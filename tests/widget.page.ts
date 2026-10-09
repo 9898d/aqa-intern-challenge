@@ -1,14 +1,15 @@
-import {Page} from "@playwright/test";
+import { Page } from "@playwright/test";
 
 enum WidgetPageSelectors {
-    WRAPPER = '.sc-dino-typography-h > [class^=widget__]',
-    WIDGET_BODY = '[class^=widgetWrapper] > [class^=widget__]',
+    WRAPPER = '[class^=widgetWrapper__]',
+    WIDGET_BODY = '[class^=widget__]',
     HEADER_TEXT = 'header h5',
     BUTTON_OPEN = '[data-test=openWidget]',
-    BUTTON_WRITE_TO_US = '[class^=btn]',
-    ARTICLE_POPULAR_TITLE = '[class^=popularTitle__]',
-    ARTICLE_POPULAR_LIST = `${ARTICLE_POPULAR_TITLE} + ul[class^=articles__]`,
-    ARTICLE_POPULAR_LIST_ITEM = `${ARTICLE_POPULAR_LIST} > li`,
+    BUTTON_ALL_ARTICLES = '[data-test=button_all_articles]',
+    BUTTON_FEEDBACK_FORM = '[data-test=button_feedback_form]',
+    ARTICLE_LIST_ITEM = '[class^=popularTitle__] + ul [data-testid=article-list-item]',
+    ARTICLE_TITLE = 'p[class^=title__]',
+    ARTICLE_TEXT = 'div[class^=text__]',
 }
 
 export class WidgetPage {
@@ -17,27 +18,52 @@ export class WidgetPage {
     constructor(protected page: Page) {}
 
     wrapper() {
-        return this.page.locator(WidgetPage.selector.WRAPPER)
+        return this.page.locator(WidgetPage.selector.WRAPPER);
+    }
+
+    getOpenButton() {
+        return this.page.locator(WidgetPage.selector.BUTTON_OPEN);
     }
 
     async openWidget() {
-        return this.wrapper().locator(WidgetPage.selector.BUTTON_OPEN).click();
+        return this.page.locator(WidgetPage.selector.BUTTON_OPEN).click();
     }
 
     async getPopularArticles() {
-        return this.wrapper().locator(WidgetPage.selector.ARTICLE_POPULAR_LIST_ITEM).all()
+        const items = this.wrapper().locator(WidgetPage.selector.ARTICLE_LIST_ITEM);
+        await items.first().waitFor({ state: 'visible', timeout: 10000 });
+        return items.all();
+    }
+
+    async clickArticleByTitle(title: string) {
+        return this.wrapper()
+            .locator(WidgetPage.selector.ARTICLE_LIST_ITEM)
+            .filter({ hasText: title })
+            .click();
+    }
+
+    async clickAllArticles() {
+        return this.wrapper().locator(WidgetPage.selector.BUTTON_ALL_ARTICLES).click();
     }
 
     async clickWriteToUs() {
-        return this.wrapper().locator(WidgetPage.selector.BUTTON_WRITE_TO_US).click();
+        return this.wrapper().locator(WidgetPage.selector.BUTTON_FEEDBACK_FORM).click();
     }
 
-    async getTitle() {
-        return this.wrapper().locator(WidgetPage.selector.HEADER_TEXT).textContent();
+    getHeaderTitle() {
+        return this.wrapper().locator(WidgetPage.selector.HEADER_TEXT);
+    }
+
+    getArticleTitle() {
+        return this.wrapper().locator(WidgetPage.selector.ARTICLE_TITLE);
+    }
+
+    getArticleText() {
+        return this.wrapper().locator(WidgetPage.selector.ARTICLE_TEXT);
     }
 
     getWidgetBody() {
-        return this.page.locator(WidgetPage.selector.WIDGET_BODY);
+        return this.wrapper().locator(WidgetPage.selector.WIDGET_BODY);
     }
 }
 
